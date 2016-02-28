@@ -14,6 +14,8 @@ class Nagios::Promoo::Occi::Probes::BasicKindsProbe
     def declaration
       "basic_kinds"
     end
+
+    def runnable_probe?; true; end
   end
 
   def run(args = [])
