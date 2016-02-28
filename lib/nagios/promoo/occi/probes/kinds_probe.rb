@@ -42,7 +42,9 @@ class Nagios::Promoo::Occi::Probes::KindsProbe < Nagios::Promoo::Occi::Probes::B
     kinds -= options[:optional] if options[:optional]
 
     begin
-      kinds.each { |kind| fail "#{kind.inspect} is missing" unless client(options).model.get_by_id(kind, true) }
+      Timeout::timeout(options[:timeout]) {
+        kinds.each { |kind| fail "#{kind.inspect} is missing" unless client(options).model.get_by_id(kind, true) }
+      }
     rescue => ex
       puts "KINDS CRITICAL - #{ex.message}"
       puts ex.backtrace if options[:debug]

@@ -38,7 +38,9 @@ class Nagios::Promoo::Occi::Probes::MixinsProbe < Nagios::Promoo::Occi::Probes::
     mixins -= options[:optional] if options[:optional]
 
     begin
-      mixins.each { |mixin| fail "#{mixin.inspect} is missing" unless client(options).model.get_by_id(mixin, true) }
+      Timeout::timeout(options[:timeout]) {
+        mixins.each { |mixin| fail "#{mixin.inspect} is missing" unless client(options).model.get_by_id(mixin, true) }
+      }
     rescue => ex
       puts "MIXINS CRITICAL - #{ex.message}"
       puts ex.backtrace if options[:debug]

@@ -1,5 +1,6 @@
 # Global deps
 require 'thor'
+require 'timeout'
 
 # Define modules
 module Nagios; end

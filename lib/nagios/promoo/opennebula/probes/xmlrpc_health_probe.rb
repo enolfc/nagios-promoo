@@ -21,7 +21,7 @@ class Nagios::Promoo::Opennebula::Probes::XmlrpcHealthProbe < Nagios::Promoo::Op
   def run(options, args = [])
     rc = nil
     begin
-      rc = client(options).get_version
+      rc = Timeout::timeout(options[:timeout]) { client(options).get_version }
       fail rc.message if OpenNebula.is_error?(rc)
     rescue => ex
       puts "XMLRPC CRITICAL - #{ex.message}"
