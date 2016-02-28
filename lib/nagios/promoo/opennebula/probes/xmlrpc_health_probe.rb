@@ -1,7 +1,7 @@
 class Nagios::Promoo::Opennebula::Probes::XmlrpcHealthProbe
   class << self
     def description
-      ['xmlrpc-health', 'Run a probe checking on OpenNebula\'s XML RPC service']
+      ['xmlrpc-health', 'Run a probe checking OpenNebula\'s XML RPC service']
     end
 
     def options
@@ -12,7 +12,7 @@ class Nagios::Promoo::Opennebula::Probes::XmlrpcHealthProbe
       "xmlrpc_health"
     end
 
-    def runnable_probe?; true; end
+    def runnable?; true; end
   end
 
   def run(args = [])

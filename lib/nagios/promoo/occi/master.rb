@@ -18,7 +18,7 @@ class Nagios::Promoo::Occi::Master < ::Thor
     end
 
     def available_probes
-      Nagios::Promoo::Occi::Probes.constants.collect { |probe| Nagios::Promoo::Occi::Probes.const_get(probe) }
+      Nagios::Promoo::Occi::Probes.constants.collect { |probe| Nagios::Promoo::Occi::Probes.const_get(probe) }.reject { |probe| !probe.runnable? }
     end
   end
 

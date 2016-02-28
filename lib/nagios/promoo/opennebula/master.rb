@@ -18,7 +18,7 @@ class Nagios::Promoo::Opennebula::Master < ::Thor
     end
 
     def available_probes
-      Nagios::Promoo::Opennebula::Probes.constants.collect { |probe| Nagios::Promoo::Opennebula::Probes.const_get(probe) }
+      Nagios::Promoo::Opennebula::Probes.constants.collect { |probe| Nagios::Promoo::Opennebula::Probes.const_get(probe) }.reject { |probe| !probe.runnable? }
     end
   end
 
