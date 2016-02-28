@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+#
+#
+#
+
+require 'nagios/promoo'
+
+Nagios::Promoo::Master.start(ARGV)

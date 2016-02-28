@@ -1,7 +1,10 @@
-require "nagios/promoo/version"
+# Global deps
+require 'thor'
 
-module Nagios
-  module Promoo
-    # Your code goes here...
-  end
-end
+# Define modules
+module Nagios; end
+module Nagios::Promoo; end
+
+# Include necessary files
+require "nagios/promoo/version"
+require "nagios/promoo/master"
