@@ -9,7 +9,7 @@ class Nagios::Promoo::Occi::Probes::BaseProbe
       :auth => {
         :type               => options[:auth].gsub('-voms', ''),
         :user_cert          => options[:token].gsub('file://', ''),
-        :user_cert_password => options[:password],
+        :user_cert_password => nil,
         :ca_path            => options[:ca_path],
         :voms               => options[:auth] == 'x509-voms' ? true : false
       },

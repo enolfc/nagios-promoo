@@ -1,6 +1,9 @@
 # Global deps
 require 'thor'
 require 'timeout'
+require 'multi_xml'
+require 'multi_json'
+require 'httparty'
 
 # Define modules
 module Nagios; end
