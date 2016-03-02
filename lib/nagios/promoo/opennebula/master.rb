@@ -23,7 +23,7 @@ class Nagios::Promoo::Opennebula::Master < ::Thor
   end
 
   class_option :endpoint, type: :string, desc: 'OpenNebula XML-RPC endpoint', default: 'http://localhost:2633/RPC2'
-  class_option :token, type: :string, desc: 'Authentication token', default: 'file:///var/lib/one/.one/one_auth'
+  class_option :token, type: :string, desc: 'Authentication token', default: "file://#{ENV['HOME']}/.one/one_auth"
 
   available_probes.each do |probe|
     desc *probe.description

@@ -59,7 +59,7 @@ class Nagios::Promoo::Opennebula::Probes::VirtualMachineProbe < Nagios::Promoo::
 
   def create(options)
     template_pool = OpenNebula::TemplatePool.new(client(options))
-    rc = template_pool.info
+    rc = template_pool.info_all
     fail rc.message if OpenNebula.is_error?(rc)
 
     template = template_pool.select { |tpl| tpl.name == options[:template] }.first
