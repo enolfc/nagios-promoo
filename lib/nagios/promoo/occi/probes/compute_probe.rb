@@ -24,6 +24,7 @@ class Nagios::Promoo::Occi::Probes::ComputeProbe < Nagios::Promoo::Occi::Probes:
     def runnable?; true; end
   end
 
+  COMPUTE_NAME_PREFIX = "sam-nagios-promoo"
   CACHE_DIR = '/tmp/nagios-promoo_cache'
   APPDB_PROXY_URL = 'https://appdb.egi.eu/api/proxy'
   APPDB_REQUEST_FORM = 'version=1.0&resource=broker&data=%3Cappdb%3Abroker%20xmlns%3Axs%3D%22http%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%22%20xmlns%3Axsi%3D%22http%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema-instance%22%20xmlns%3Aappdb%3D%22http%3A%2F%2Fappdb.egi.eu%2Fapi%2F1.0%2Fappdb%22%3E%3Cappdb%3Arequest%20id%3D%22vaproviders%22%20method%3D%22GET%22%20resource%3D%22va_providers%22%3E%3Cappdb%3Aparam%20name%3D%22listmode%22%3Edetails%3C%2Fappdb%3Aparam%3E%3C%2Fappdb%3Arequest%3E%3C%2Fappdb%3Abroker%3E'
@@ -50,7 +51,7 @@ class Nagios::Promoo::Occi::Probes::ComputeProbe < Nagios::Promoo::Occi::Probes:
     begin
       2.times { client(options).delete('compute') } if options[:cleanup]
       compute = client(options).get_resource('compute')
-      compute.title = compute.hostname = "sam-nagios-promoo-#{Time.now.to_i}"
+      compute.title = compute.hostname = "#{COMPUTE_NAME_PREFIX}-#{Time.now.to_i}"
 
       compute.mixins << client(options).get_mixin(os_tpl, 'os_tpl', true)
       compute.mixins << client(options).get_mixin(resource_tpl, 'resource_tpl', true)
