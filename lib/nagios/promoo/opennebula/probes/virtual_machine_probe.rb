@@ -4,7 +4,7 @@ require File.join(File.dirname(__FILE__), 'base_probe')
 class Nagios::Promoo::Opennebula::Probes::VirtualMachineProbe < Nagios::Promoo::Opennebula::Probes::BaseProbe
   class << self
     def description
-      ['virtual-machine', 'Run a probe checking OpenNebula\'s XML RPC service']
+      ['virtual-machine', 'Run a probe instantiating a test instance in OpenNebula']
     end
 
     def options
