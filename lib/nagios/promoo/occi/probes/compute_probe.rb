@@ -24,6 +24,7 @@ class Nagios::Promoo::Occi::Probes::ComputeProbe < Nagios::Promoo::Occi::Probes:
     def runnable?; true; end
   end
 
+  CPU_SUM_WEIGHT = 1000
   COMPUTE_NAME_PREFIX = "sam-nagios-promoo"
   CACHE_DIR = '/tmp/nagios-promoo_cache'
   APPDB_PROXY_URL = 'https://appdb.egi.eu/api/proxy'
@@ -112,7 +113,8 @@ class Nagios::Promoo::Occi::Probes::ComputeProbe < Nagios::Promoo::Occi::Probes:
     appliance = appdb_provider(options)['image'].select do |image|
       image['mp_uri'] && (normalize_mpuri(image['mp_uri']) == normalize_mpuri(options[:mpuri]))
     end.first
-    fail "No such appliance is published in AppDB" if appliance.blank?
+    fail "Site does not have an appliance with MPURI "\
+         "#{normalize_mpuri(options[:mpuri]).inspect} published in AppDB" if appliance.blank?
 
     appliance['va_provider_image_id'].split('#').last
   end
@@ -122,7 +124,7 @@ class Nagios::Promoo::Occi::Probes::ComputeProbe < Nagios::Promoo::Occi::Probes:
     appdb_provider(options)['template'].each do |template|
       sizes << [
         template['resource_name'].split('#').last,
-        template['main_memory_size'].to_i + template['physical_cpus'].to_i
+        template['main_memory_size'].to_i + (template['physical_cpus'].to_i * CPU_SUM_WEIGHT)
       ]
     end
     fail "No appliance sizes available in AppDB" if sizes.blank?
