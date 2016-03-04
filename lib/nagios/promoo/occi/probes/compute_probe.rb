@@ -53,8 +53,8 @@ class Nagios::Promoo::Occi::Probes::ComputeProbe < Nagios::Promoo::Occi::Probes:
       compute = client(options).get_resource('compute')
       compute.title = compute.hostname = "#{COMPUTE_NAME_PREFIX}-#{Time.now.to_i}"
 
-      compute.mixins << client(options).get_mixin(os_tpl, 'os_tpl', true)
-      compute.mixins << client(options).get_mixin(resource_tpl, 'resource_tpl', true)
+      compute.mixins << get_mixin(os_tpl, 'os_tpl', options)
+      compute.mixins << get_mixin(resource_tpl, 'resource_tpl', options)
 
       link = client(options).create(compute)
       wait4compute(link, options)
@@ -71,6 +71,12 @@ class Nagios::Promoo::Occi::Probes::ComputeProbe < Nagios::Promoo::Occi::Probes:
     end
 
     link
+  end
+
+  def get_mixin(term, type, options)
+    mxn = client(options).get_mixin(term, type, true)
+    fail "Mixin #{term.inspect} of type #{type.inspect} not found at the site" unless mxn
+    mxn
   end
 
   def wait4compute(link, options)
