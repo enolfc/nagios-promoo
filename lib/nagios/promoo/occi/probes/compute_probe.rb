@@ -110,9 +110,10 @@ class Nagios::Promoo::Occi::Probes::ComputeProbe < Nagios::Promoo::Occi::Probes:
   end
 
   def appdb_appliance(options)
+    appliance = nil
     appliance = appdb_provider(options)['image'].select do |image|
       image['mp_uri'] && (normalize_mpuri(image['mp_uri']) == normalize_mpuri(options[:mpuri]))
-    end.first
+    end.first if appdb_provider(options)['image']
     fail "Site does not have an appliance with MPURI "\
          "#{normalize_mpuri(options[:mpuri]).inspect} published in AppDB" if appliance.blank?
 
@@ -126,7 +127,7 @@ class Nagios::Promoo::Occi::Probes::ComputeProbe < Nagios::Promoo::Occi::Probes:
         template['resource_name'].split('#').last,
         template['main_memory_size'].to_i + (template['physical_cpus'].to_i * CPU_SUM_WEIGHT)
       ]
-    end
+    end if appdb_provider(options)['template']
     fail "No appliance sizes available in AppDB" if sizes.blank?
     sizes.sort! { |x,y| x.last <=> y.last }
 
