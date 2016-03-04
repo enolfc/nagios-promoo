@@ -1,4 +1,4 @@
-# Nagios Probes for Monitoring OpenNebula and OCCI
+# Nagios Probes for Monitoring OpenNebula and OCCI-enabled clouds
 
 ## Installation
 
