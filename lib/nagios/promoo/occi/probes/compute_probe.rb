@@ -26,7 +26,6 @@ class Nagios::Promoo::Occi::Probes::ComputeProbe < Nagios::Promoo::Occi::Probes:
 
   CPU_SUM_WEIGHT = 1000
   COMPUTE_NAME_PREFIX = "sam-nagios-promoo"
-  CACHE_DIR = '/tmp/nagios-promoo_cache'
   APPDB_PROXY_URL = 'https://appdb.egi.eu/api/proxy'
   APPDB_REQUEST_FORM = 'version=1.0&resource=broker&data=%3Cappdb%3Abroker%20xmlns%3Axs%3D%22http%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%22%20xmlns%3Axsi%3D%22http%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema-instance%22%20xmlns%3Aappdb%3D%22http%3A%2F%2Fappdb.egi.eu%2Fapi%2F1.0%2Fappdb%22%3E%3Cappdb%3Arequest%20id%3D%22vaproviders%22%20method%3D%22GET%22%20resource%3D%22va_providers%22%3E%3Cappdb%3Aparam%20name%3D%22listmode%22%3Edetails%3C%2Fappdb%3Aparam%3E%3C%2Fappdb%3Arequest%3E%3C%2Fappdb%3Abroker%3E'
 
@@ -147,30 +146,14 @@ class Nagios::Promoo::Occi::Probes::ComputeProbe < Nagios::Promoo::Occi::Probes:
     @provider = parsed_response['broker']['reply']['appdb']['provider'].select do |prov|
       prov['endpoint_url'] && (prov['endpoint_url'].chomp('/') == options[:endpoint].chomp('/'))
     end.first
-    fail "Could not locate site by endpoint #{options[:endpoint]} in AppDB" unless @provider
+    fail "Could not locate site by endpoint #{options[:endpoint].inspect} in AppDB" unless @provider
 
     @provider
-  end
-
-  def cache_fetch(key, expiration = 3600)
-    fail 'You have to provide a block!' unless block_given?
-    FileUtils.mkdir_p CACHE_DIR
-    filename = File.join(CACHE_DIR, key)
-
-    if cache_valid?(filename, expiration)
-      File.open(filename, 'r') { |file| JSON.parse file.read }
-    else
-      data = yield
-      File.open(filename, 'w') { |file| file.write JSON.pretty_generate(data) }
-      data
-    end
-  end
-
-  def cache_valid?(filename, expiration)
-    File.exists?(filename) && ((Time.now - expiration) < File.stat(filename).mtime)
   end
 
   def normalize_mpuri(mpuri)
     mpuri.gsub(/\/+$/, '').gsub(/:\d+$/, '')
   end
+
+  include Nagios::Promoo::Utils::Cache
 end
