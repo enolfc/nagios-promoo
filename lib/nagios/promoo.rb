@@ -11,4 +11,5 @@ module Nagios::Promoo; end
 
 # Include necessary files
 require "nagios/promoo/version"
+require "nagios/promoo/utils"
 require "nagios/promoo/master"
