@@ -17,6 +17,9 @@ class Nagios::Promoo::Master < ::Thor
   desc 'occi PROBE', 'Run the given probe for OCCI'
   subcommand 'occi', Nagios::Promoo::Occi::Master
 
+  desc 'appdb PROBE', 'Run the given probe for AppDB'
+  subcommand 'appdb', Nagios::Promoo::Appdb::Master
+
   desc 'version', 'Print PROMOO version'
   def version
     puts Nagios::Promoo::VERSION
