@@ -35,6 +35,6 @@ class Nagios::Promoo::Appdb::Probes::SizesProbe < Nagios::Promoo::Appdb::Probes:
   private
 
   def check_sizes(options)
-    (appdb_provider(options)['template'] || []).count
+    [appdb_provider(options)['template']].flatten.compact.count
   end
 end
