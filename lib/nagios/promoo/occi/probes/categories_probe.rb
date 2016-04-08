@@ -6,7 +6,7 @@ require File.join(File.dirname(__FILE__), 'mixins_probe')
 class Nagios::Promoo::Occi::Probes::CategoriesProbe < Nagios::Promoo::Occi::Probes::BaseProbe
   class << self
     def description
-      ['categories', 'Run a probe checking for mandatory OCCI categories definitions']
+      ['categories', 'Run a probe checking for mandatory OCCI category definitions']
     end
 
     def options
