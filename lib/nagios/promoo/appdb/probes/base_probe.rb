@@ -13,8 +13,8 @@ class Nagios::Promoo::Appdb::Probes::BaseProbe
     fail "Could not get site"\
          "details from AppDB [#{response.code}]" unless response.success?
 
-    @provider = response.parsed_response['broker']['reply']['appdb']['provider'].select do |prov|
-      prov['endpoint_url'] && (prov['endpoint_url'].chomp('/') == options[:endpoint].chomp('/'))
+    @provider = response.parsed_response['appdb:broker']['appdb:reply']['appdb:appdb']['virtualization:provider'].select do |prov|
+      prov['provider:endpoint_url'] && (prov['provider:endpoint_url'].chomp('/') == options[:endpoint].chomp('/'))
     end.first
     fail "Could not locate site by endpoint #{options[:endpoint].inspect} in AppDB" unless @provider
 

@@ -35,6 +35,6 @@ class Nagios::Promoo::Appdb::Probes::AppliancesProbe < Nagios::Promoo::Appdb::Pr
   private
 
   def check_appliances(options)
-    [appdb_provider(options)['image']].flatten.compact.count
+    [appdb_provider(options)['provider:image']].flatten.compact.count
   end
 end

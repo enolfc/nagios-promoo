@@ -79,7 +79,7 @@ class Nagios::Promoo::Appdb::Probes::VmcatcherProbe < Nagios::Promoo::Appdb::Pro
   end
 
   def provider_appliances(options)
-    images = [appdb_provider(options)['image']].flatten.compact
+    images = [appdb_provider(options)['provider:image']].flatten.compact
     images.collect { |image| image['mp_uri'] }.reject { |mpuri| mpuri.blank? }
   end
 
