@@ -10,7 +10,8 @@ class Nagios::Promoo::Occi::Probes::KindsProbe < Nagios::Promoo::Occi::Probes::B
     def options
       [
         [:kinds, { type: :string, enum: %w(core infra all), default: 'all', desc: 'Collection of mandatory kinds to check' }],
-        [:optional, { type: :array, default: [], desc: 'Identifiers of optional kinds (optional by force)' }]
+        [:optional, { type: :array, default: [], desc: 'Identifiers of optional kinds (optional by force)' }],
+        [:check_location, { type: :boolean, default: false, desc: 'Verify declared REST locations for INFRA resources' }],
       ]
     end
 
@@ -42,9 +43,22 @@ class Nagios::Promoo::Occi::Probes::KindsProbe < Nagios::Promoo::Occi::Probes::B
     kinds -= options[:optional] if options[:optional]
 
     begin
-      Timeout::timeout(options[:timeout]) {
-        kinds.each { |kind| fail "#{kind.inspect} is missing" unless client(options).model.get_by_id(kind, true) }
-      }
+      Timeout::timeout(options[:timeout]) do
+        kinds.each do |kind|
+          fail "#{kind.inspect} is missing" unless client(options).model.get_by_id(kind, true)
+          next unless options[:check_location] && INFRA_KINDS.include?(kind)
+
+          # Make sure declared locations are actually available as REST
+          # endpoints. Failure will raise an exception, no need to do
+          # anything here. To keep requirements reasonable, only INFRA
+          # kinds are considered relevant for this part of the check.
+          begin
+            client(options).list(kind)
+          rescue => err
+            fail "Failed to verify declared REST location for #{kind.inspect} (#{err.message})"
+          end
+        end
+      end
     rescue => ex
       puts "KINDS CRITICAL - #{ex.message}"
       puts ex.backtrace if options[:debug]
