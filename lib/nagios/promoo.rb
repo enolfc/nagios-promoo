@@ -1,9 +1,12 @@
 # Global deps
 require 'thor'
 require 'timeout'
+require 'ox'
 require 'multi_xml'
-require 'multi_json'
 require 'httparty'
+
+# Force multi_xml to use ox
+MultiXml.parser = :ox
 
 # Define modules
 module Nagios; end

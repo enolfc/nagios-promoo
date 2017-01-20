@@ -24,8 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency     'yell'
   spec.add_runtime_dependency     'activesupport'
   spec.add_runtime_dependency     'httparty'
-  spec.add_runtime_dependency     'multi_xml'
-  spec.add_runtime_dependency     'multi_json'
+  spec.add_runtime_dependency     'ox'
 
   spec.add_development_dependency 'bundler', '~> 1.7'
   spec.add_development_dependency 'rake', '~> 10.0'
