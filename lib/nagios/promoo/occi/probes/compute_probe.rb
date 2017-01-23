@@ -73,7 +73,7 @@ class Nagios::Promoo::Occi::Probes::ComputeProbe < Nagios::Promoo::Occi::Probes:
   end
 
   def compute_create(options)
-    2.times { client(options).delete('compute') } if options[:cleanup]
+    client(options).delete('compute') if options[:cleanup]
 
     compute = client(options).get_resource('compute')
     compute.title = compute.hostname = "#{COMPUTE_NAME_PREFIX}-#{Time.now.to_i}"
@@ -86,7 +86,7 @@ class Nagios::Promoo::Occi::Probes::ComputeProbe < Nagios::Promoo::Occi::Probes:
   end
 
   def storage_create(options)
-    # TODO: client(options).delete('storage') if options[:cleanup]
+    client(options).delete('storage') if options[:cleanup]
 
     storage = client(options).get_resource('storage')
     storage.title = "#{COMPUTE_NAME_PREFIX}-block-#{Time.now.to_i}"
@@ -96,7 +96,7 @@ class Nagios::Promoo::Occi::Probes::ComputeProbe < Nagios::Promoo::Occi::Probes:
   end
 
   def link_instances(compute_link, storage_link, options)
-    slink = client(options).get_resource('storagelink')
+    slink = client(options).get_link('storagelink')
     slink.source = compute_link
     slink.target = storage_link
 

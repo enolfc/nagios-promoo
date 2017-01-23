@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.add_runtime_dependency     'occi-api', '~> 4.3'
+  spec.add_runtime_dependency     'occi-api', '~> 4.3', '>= 4.3.7'
   spec.add_runtime_dependency     'opennebula', '~> 4.14'
   spec.add_runtime_dependency     'thor'
   spec.add_runtime_dependency     'yell'
