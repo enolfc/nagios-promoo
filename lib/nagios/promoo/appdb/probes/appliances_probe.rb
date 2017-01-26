@@ -18,14 +18,18 @@ class Nagios::Promoo::Appdb::Probes::AppliancesProbe < Nagios::Promoo::Appdb::Pr
     def runnable?; true; end
   end
 
-  def run(options, args = [])
-    count = nil
+  def run(args = [])
+    count = 0
     begin
-      count = Timeout::timeout(options[:timeout]) { check_appliances(options) }
-      fail "No appliances found in AppDB" if count < 1
+      count = Timeout::timeout(options[:timeout]) { check_appliances }
     rescue => ex
-      puts "APPLIANCES CRITICAL - #{ex.message}"
+      puts "APPLIANCES UNKNOWN - #{ex.message}"
       puts ex.backtrace if options[:debug]
+      exit 3
+    end
+
+    if count < 1
+      puts "APPLIANCES CRITICAL - No appliances found in AppDB" 
       exit 2
     end
 
@@ -34,7 +38,7 @@ class Nagios::Promoo::Appdb::Probes::AppliancesProbe < Nagios::Promoo::Appdb::Pr
 
   private
 
-  def check_appliances(options)
-    [appdb_provider(options)['provider:image']].flatten.compact.count
+  def check_appliances
+    [appdb_provider['provider:image']].flatten.compact.count
   end
 end
