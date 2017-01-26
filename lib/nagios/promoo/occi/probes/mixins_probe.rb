@@ -31,22 +31,20 @@ class Nagios::Promoo::Occi::Probes::MixinsProbe < Nagios::Promoo::Occi::Probes::
     http://schemas.openstack.org/compute/instance#user_data
   )
 
-  def run(options, args = [])
+  def run(args = [])
     mixins = []
     mixins += INFRA_MIXINS if %w(infra all).include?(options[:mixins])
     mixins += CONTEXT_MIXINS if %w(context all).include?(options[:mixins])
     mixins -= options[:optional] if options[:optional]
 
-    begin
-      Timeout::timeout(options[:timeout]) {
-        mixins.each { |mixin| fail "#{mixin.inspect} is missing" unless client(options).model.get_by_id(mixin, true) }
-      }
-    rescue => ex
-      puts "MIXINS CRITICAL - #{ex.message}"
-      puts ex.backtrace if options[:debug]
-      exit 2
+    Timeout::timeout(options[:timeout]) do
+      mixins.each { |mixin| fail "#{mixin.inspect} is missing" unless client.model.get_by_id(mixin, true) }
     end
 
     puts 'MIXINS OK - All specified OCCI mixins were found'
+  rescue => ex
+    puts "MIXINS CRITICAL - #{ex.message}"
+    puts ex.backtrace if options[:debug]
+    exit 2
   end
 end

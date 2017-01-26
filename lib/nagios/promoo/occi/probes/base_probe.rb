@@ -3,8 +3,14 @@ class Nagios::Promoo::Occi::Probes::BaseProbe
     def runnable?; false; end
   end
 
-  def client(options)
-    @client ||= Occi::Api::Client::ClientHttp.new({
+  attr_reader :options
+
+  def initialize(options)
+    @options = options
+  end
+
+  def client
+    @_client ||= Occi::Api::Client::ClientHttp.new({
       :endpoint => options[:endpoint],
       :auth => {
         :type               => options[:auth].gsub('-voms', ''),
