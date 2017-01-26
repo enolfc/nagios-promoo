@@ -3,10 +3,16 @@ class Nagios::Promoo::Opennebula::Probes::BaseProbe
     def runnable?; false; end
   end
 
-  def client(options)
-    return @client if @client
+  attr_reader :options
+
+  def initialize(options)
+    @options = options
+  end
+
+  def client
+    return @_client if @_client
 
     token = options[:token].start_with?('file://') ? File.read(options[:token].gsub('file://', '')) : options[:token]
-    @client = OpenNebula::Client.new("#{token}", options[:endpoint])
+    @_client = OpenNebula::Client.new("#{token}", options[:endpoint])
   end
 end

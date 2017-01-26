@@ -18,17 +18,14 @@ class Nagios::Promoo::Opennebula::Probes::XmlrpcHealthProbe < Nagios::Promoo::Op
     def runnable?; true; end
   end
 
-  def run(options, args = [])
-    rc = nil
-    begin
-      rc = Timeout::timeout(options[:timeout]) { client(options).get_version }
-      fail rc.message if OpenNebula.is_error?(rc)
-    rescue => ex
-      puts "XMLRPC CRITICAL - #{ex.message}"
-      puts ex.backtrace if options[:debug]
-      exit 2
-    end
+  def run(args = [])
+    rc = Timeout::timeout(options[:timeout]) { client.get_version }
+    fail rc.message if OpenNebula.is_error?(rc)
 
     puts "XMLRPC OK - OpenNebula #{rc} daemon is up and running"
+  rescue => ex
+    puts "XMLRPC CRITICAL - #{ex.message}"
+    puts ex.backtrace if options[:debug]
+    exit 2
   end
 end

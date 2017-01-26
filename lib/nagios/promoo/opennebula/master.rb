@@ -32,7 +32,7 @@ class Nagios::Promoo::Opennebula::Master < ::Thor
     end
     class_eval %Q^
 def #{probe.declaration}(*args)
-  #{probe}.new.run(options, args)
+  #{probe}.new(options).run(args)
 end
 ^
   end

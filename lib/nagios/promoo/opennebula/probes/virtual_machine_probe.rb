@@ -24,74 +24,70 @@ class Nagios::Promoo::Opennebula::Probes::VirtualMachineProbe < Nagios::Promoo::
 
   VM_NAME_PREFIX = "nagios-promoo"
 
-  def run(options, args = [])
+  def run(args = [])
     fail "Timeout (#{options[:timeout]}) must be higher than "\
          "vm-timeout (#{options[:vm_timeout]}) " if options[:timeout] <= options[:vm_timeout]
 
-    vm = nil
-    begin
-      Timeout::timeout(options[:timeout]) {
-        cleanup(options) if options[:cleanup]
-        vm = create(options)
-        wait4running(options, vm)
-      }
-    rescue => ex
-      puts "VirtualMachine CRITICAL - #{ex.message}"
-      puts ex.backtrace if options[:debug]
-      exit 2
-    ensure
-      begin
-        cleanup(options, vm) unless vm.blank?
-      rescue => ex
-        ## ignoring
-      end
-    end
+    @_virtual_machine = nil
 
-    puts "VirtualMachine OK - Instance #{vm.id.inspect} of template "\
+    Timeout::timeout(options[:timeout]) {
+      cleanup if options[:cleanup]
+      create
+      wait4running
+    }
+
+    puts "VirtualMachine OK - Instance #{@_virtual_machine.id.inspect} of template "\
          "#{options[:template].inspect} successfully created & cleaned up"
+  rescue => ex
+    puts "VirtualMachine CRITICAL - #{ex.message}"
+    puts ex.backtrace if options[:debug]
+    exit 2
+  ensure
+    cleanup @_virtual_machine unless @_virtual_machine.blank?
+  rescue => ex
+    ## ignoring
   end
 
   private
 
-  def cleanup(options, vm = nil)
-    (vm && vm.id) ? shutdown_or_delete(vm) : search_and_destroy(options)
+  def cleanup(virtual_machine = nil)
+    virtual_machine ? shutdown_or_delete(virtual_machine) : search_and_destroy
   end
 
-  def create(options)
-    template_pool = OpenNebula::TemplatePool.new(client(options))
+  def create
+    template_pool = OpenNebula::TemplatePool.new(client)
     rc = template_pool.info_all
     fail rc.message if OpenNebula.is_error?(rc)
 
     template = template_pool.select { |tpl| tpl.name == options[:template] }.first
     fail "Template #{options[:template].inspect} could not be found" unless template
+
     vm_id = template.instantiate("#{VM_NAME_PREFIX}-#{Time.now.to_i}")
     fail vm_id.message if OpenNebula.is_error?(vm_id)
 
-    vm = OpenNebula::VirtualMachine.new(OpenNebula::VirtualMachine.build_xml(vm_id), client(options))
-    rc = vm.info
+    virtual_machine = OpenNebula::VirtualMachine.new(OpenNebula::VirtualMachine.build_xml(vm_id), client)
+    rc = virtual_machine.info
     fail rc.message if OpenNebula.is_error?(rc)
 
-    vm
+    @_virtual_machine = virtual_machine
   end
 
-  def wait4running(options, vm)
-    begin
-      Timeout::timeout(options[:vm_timeout]) {
-        while vm.lcm_state_str != 'RUNNING' do
-          fail 'Instance deployment failed (resulting state is "FAILED")' if vm.state_str == 'FAILED'
-          rc = vm.info
-          fail rc.message if OpenNebula.is_error?(rc)
-        end
-      }
-    rescue Timeout::Error => ex
-      puts "VirtualMachine WARNING - Execution timed out while waiting for "\
-           "the instance to become active [#{options[:vm_timeout]}s]"
-      exit 1
-    end
+  def wait4running
+    Timeout::timeout(options[:vm_timeout]) {
+      while @_virtual_machine.lcm_state_str != 'RUNNING' do
+        fail 'Instance deployment failed (resulting state is "*_FAILED")' if @_virtual_machine.lcm_state_str.include?('FAILURE')
+        rc = @_virtual_machine.info
+        fail rc.message if OpenNebula.is_error?(rc)
+      end
+    }
+  rescue Timeout::Error => ex
+    puts "VirtualMachine WARNING - Execution timed out while waiting for " \
+         "the instance to become active [#{options[:vm_timeout]}s]"
+    exit 1
   end
 
-  def search_and_destroy(options)
-    vm_pool = OpenNebula::VirtualMachinePool.new(client(options))
+  def search_and_destroy
+    vm_pool = OpenNebula::VirtualMachinePool.new(client)
     rc = vm_pool.info_mine
     fail rc.message if OpenNebula.is_error?(rc)
 
@@ -101,8 +97,8 @@ class Nagios::Promoo::Opennebula::Probes::VirtualMachineProbe < Nagios::Promoo::
     candidates.count
   end
 
-  def shutdown_or_delete(vm)
-    rc = (vm.lcm_state_str == 'RUNNING') ? vm.shutdown(true) : vm.delete
+  def shutdown_or_delete(virtual_machine)
+    rc = virtual_machine.terminate true
     fail rc.message if OpenNebula.is_error?(rc)
   end
 end
