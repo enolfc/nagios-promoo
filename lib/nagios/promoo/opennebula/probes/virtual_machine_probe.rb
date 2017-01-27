@@ -43,9 +43,11 @@ class Nagios::Promoo::Opennebula::Probes::VirtualMachineProbe < Nagios::Promoo::
     puts ex.backtrace if options[:debug]
     exit 2
   ensure
-    cleanup @_virtual_machine unless @_virtual_machine.blank?
-  rescue => ex
-    ## ignoring
+    begin
+      cleanup @_virtual_machine unless @_virtual_machine.blank?
+    rescue => ex
+      ## ignoring
+    end
   end
 
   private
