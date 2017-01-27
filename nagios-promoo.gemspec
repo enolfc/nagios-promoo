@@ -18,21 +18,21 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.add_runtime_dependency     'occi-api', '~> 4.3', '>= 4.3.7'
-  spec.add_runtime_dependency     'opennebula', '~> 5.2.1'
-  spec.add_runtime_dependency     'thor'
-  spec.add_runtime_dependency     'yell'
-  spec.add_runtime_dependency     'activesupport'
-  spec.add_runtime_dependency     'httparty'
-  spec.add_runtime_dependency     'ox'
+  spec.add_runtime_dependency     'occi-api', '>= 4.3.8', '< 5'
+  spec.add_runtime_dependency     'opennebula', '>= 5.2.1', '< 6'
+  spec.add_runtime_dependency     'thor', '>= 0.19.4', '< 1'
+  spec.add_runtime_dependency     'yell', '>= 2.0.7', '< 3'
+  spec.add_runtime_dependency     'activesupport', '>= 4.0', '< 5'
+  spec.add_runtime_dependency     'httparty', '>= 0.14', '< 1'
+  spec.add_runtime_dependency     'ox', '>= 2.4.9', '< 3'
 
-  spec.add_development_dependency 'bundler', '~> 1.7'
-  spec.add_development_dependency 'rake', '~> 10.0'
-  spec.add_development_dependency 'rspec', '~> 3.0'
-  spec.add_development_dependency 'simplecov', '~> 0.9'
-  spec.add_development_dependency 'rubygems-tasks', '~> 0.2'
-  spec.add_development_dependency 'rubocop', '~> 0.32'
-  spec.add_development_dependency 'pry', '~> 0.10'
+  spec.add_development_dependency 'bundler', '>= 1.8', '< 2'
+  spec.add_development_dependency 'rake', '>= 10.0', '< 13'
+  spec.add_development_dependency 'rspec', '>= 3.0', '< 4'
+  spec.add_development_dependency 'simplecov', '>= 0.13', '< 1'
+  spec.add_development_dependency 'rubygems-tasks', '>= 0.2.4', '< 1'
+  spec.add_development_dependency 'rubocop', '>= 0.47', '< 1'
+  spec.add_development_dependency 'pry', '>= 0.10', '< 1'
 
   spec.required_ruby_version = '>= 1.9.3'
 end
