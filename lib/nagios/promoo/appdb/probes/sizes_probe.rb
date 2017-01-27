@@ -19,26 +19,25 @@ class Nagios::Promoo::Appdb::Probes::SizesProbe < Nagios::Promoo::Appdb::Probes:
   end
 
   def run(args = [])
-    count = 0
-    begin
-      count = Timeout::timeout(options[:timeout]) { check_sizes }
-    rescue => ex
-      puts "SIZES UNKNOWN - #{ex.message}"
-      puts ex.backtrace if options[:debug]
-      exit 3
-    end
+    @_count = 0
 
-    if count < 1
+    Timeout::timeout(options[:timeout]) { check_sizes }
+
+    if @_count < 1
       puts "SIZES CRITICAL - No size/flavor/resource templates found in AppDB"
       exit 2
     end
 
-    puts "SIZES OK - Found #{count} size/flavor/resource templates in AppDB"
+    puts "SIZES OK - Found #{@_count} size/flavor/resource templates in AppDB"
+  rescue => ex
+    puts "SIZES UNKNOWN - #{ex.message}"
+    puts ex.backtrace if options[:debug]
+    exit 3
   end
 
   private
 
   def check_sizes
-    [appdb_provider['provider:template']].flatten.compact.count
+    @_count = [appdb_provider['provider:template']].flatten.compact.count
   end
 end

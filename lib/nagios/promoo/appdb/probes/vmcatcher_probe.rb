@@ -27,53 +27,49 @@ class Nagios::Promoo::Appdb::Probes::VmcatcherProbe < Nagios::Promoo::Appdb::Pro
   IMAGE_LIST_BOUNDARY_REGEXP = /boundary="(?<prefix>-+)(?<id>[[:alnum:]]+)"/
 
   def run(args = [])
-    results = begin
-                Timeout::timeout(options[:timeout]) { check_vmc_sync }
-              rescue => ex
-                puts "VMCATCHER UNKNOWN - #{ex.message}"
-                puts ex.backtrace if options[:debug]
-                exit 3
-              end
+    @_results = { found: [], outdated: [], missing: [], expected: [] }
 
-    if results[:missing].count >= options[:missing_critical]
-      puts "VMCATCHER CRITICAL - #{results[:missing].count} appliance(s) in #{options[:vo].inspect} missing"
+    Timeout::timeout(options[:timeout]) { check_vmc_sync }
+
+    if @_results[:missing].count >= options[:missing_critical]
+      puts "VMCATCHER CRITICAL - #{@_results[:missing].count} appliance(s) in #{options[:vo].inspect} missing"
       exit 2
     end
 
-    if results[:outdated].count >= options[:outdated_critical]
-      puts "VMCATCHER CRITICAL - #{results[:outdated].count} appliance(s) in #{options[:vo].inspect} outdated"
+    if @_results[:outdated].count >= options[:outdated_critical]
+      puts "VMCATCHER CRITICAL - #{@_results[:outdated].count} appliance(s) in #{options[:vo].inspect} outdated"
       exit 2
     end
 
-    if results[:outdated].count > 0
-      puts "VMCATCHER WARNING - #{results[:outdated].count} appliances in #{options[:vo].inspect} outdated"
+    if @_results[:outdated].count > 0
+      puts "VMCATCHER WARNING - #{@_results[:outdated].count} appliances in #{options[:vo].inspect} outdated"
       exit 1
     end
 
-    puts "VMCATCHER OK - All appliances registered in #{options[:vo].inspect} are available [#{results[:expected].count}]"
+    puts "VMCATCHER OK - All appliances registered in #{options[:vo].inspect} are available [#{@_results[:expected].count}]"
+  rescue => ex
+    puts "VMCATCHER UNKNOWN - #{ex.message}"
+    puts ex.backtrace if options[:debug]
+    exit 3
   end
 
   private
 
   def check_vmc_sync
-    results = { found: [], outdated: [], missing: [], expected: [] }
-
     vo_list.each do |hv_image|
       mpuri_versionless = versionless_mpuri(hv_image['ad:mpuri'])
-      results[:expected] << mpuri_versionless
+      @_results[:expected] << mpuri_versionless
 
       matching = provider_appliances.select { |appl| appl['mp_uri'] == mpuri_versionless }.first
 
       unless matching
-        results[:missing] << mpuri_versionless
+        @_results[:missing] << mpuri_versionless
         next
       end
 
-      results[:outdated] << mpuri_versionless if hv_image['hv:version'] != matching['vmiversion']
-      results[:found] << mpuri_versionless
+      @_results[:outdated] << mpuri_versionless if hv_image['hv:version'] != matching['vmiversion']
+      @_results[:found] << mpuri_versionless
     end
-
-    results
   end
 
   def provider_appliances
