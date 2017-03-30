@@ -1,9 +1,11 @@
 # Global deps
+require 'active_support/all'
 require 'thor'
 require 'timeout'
 require 'ox'
 require 'multi_xml'
 require 'httparty'
+require 'date'
 
 # Force multi_xml to use ox
 MultiXml.parser = :ox
