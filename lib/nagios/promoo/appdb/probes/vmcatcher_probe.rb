@@ -11,8 +11,8 @@ class Nagios::Promoo::Appdb::Probes::VmcatcherProbe < Nagios::Promoo::Appdb::Pro
       [
         [:vo, { type: :string, required: true, desc: 'Virtual Organization name (used to select the appropriate VO-wide image list)' }],
         [:token, { type: :string, required: true, desc: 'AppDB authentication token (used to access the VO-wide image list)' }],
-        [:missing_critical, { type: :numeric, default: 2, desc: 'Number of missing appliances to be considered CRITICAL' }],
-        [:outdated_critical, { type: :numeric, default: 5, desc: 'Number of outdated appliances to be considered CRITICAL' }],
+        [:warning_after, { type: :numeric, default: 24, desc: 'A number of hours after list publication when missing or outdated appliances raise WARNING' }],
+        [:critical_after, { type: :numeric, default: 72, desc: 'A number of hours after list publication when missing or outdated appliances raise CRITICAL' }],
       ]
     end
 
@@ -31,22 +31,25 @@ class Nagios::Promoo::Appdb::Probes::VmcatcherProbe < Nagios::Promoo::Appdb::Pro
 
     Timeout::timeout(options[:timeout]) { check_vmc_sync }
 
-    if @_results[:missing].count >= options[:missing_critical]
-      puts "VMCATCHER CRITICAL - #{@_results[:missing].count} appliance(s) in #{options[:vo].inspect} missing"
-      exit 2
+    wrong = @_results[:missing] + @_results[:outdated]
+    if wrong.any?
+      if (@_last_update + options[:critical_after].hours) < Time.now
+        puts "VMCATCHER CRITICAL - Appliance(s) #{wrong.inspect} missing " \
+             "or outdated in #{options[:vo].inspect} " \
+             "more than #{options[:critical_after]} hours after list publication [#{@_last_update}]"
+        exit 2
+      end
+
+      if (@_last_update + options[:warning_after].hours) < Time.now
+        puts "VMCATCHER WARNING - Appliance(s) #{wrong.inspect} missing " \
+             "or outdated in #{options[:vo].inspect} " \
+             "more than #{options[:warning_after]} hours after list publication [#{@_last_update}]"
+        exit 1
+      end
     end
 
-    if @_results[:outdated].count >= options[:outdated_critical]
-      puts "VMCATCHER CRITICAL - #{@_results[:outdated].count} appliance(s) in #{options[:vo].inspect} outdated"
-      exit 2
-    end
-
-    if @_results[:outdated].count > 0
-      puts "VMCATCHER WARNING - #{@_results[:outdated].count} appliances in #{options[:vo].inspect} outdated"
-      exit 1
-    end
-
-    puts "VMCATCHER OK - All appliances registered in #{options[:vo].inspect} are available [#{@_results[:expected].count}]"
+    puts "VMCATCHER OK - All appliances registered in #{options[:vo].inspect} " \
+         "are available [#{@_results[:expected].count}]"
   rescue => ex
     puts "VMCATCHER UNKNOWN - #{ex.message}"
     puts ex.backtrace if options[:debug]
@@ -95,10 +98,14 @@ class Nagios::Promoo::Appdb::Probes::VmcatcherProbe < Nagios::Promoo::Appdb::Pro
          "from #{list_url.inspect} [#{response.code}]" unless response.success?
 
     list = JSON.parse OpenSSL::PKCS7.read_smime(response.parsed_response).data
-    fail "AppDB image list #{list_url.inspect} does " \
-         "not contain images" unless list && list['hv:imagelist'] && list['hv:imagelist']['hv:images']
+    fail "AppDB image list #{list_url.inspect} is empty or malformed" unless list && list['hv:imagelist']
 
-    @_hv_images = list['hv:imagelist']['hv:images'].collect { |im| im['hv:image'] }.reject { |im| im.blank? || im['ad:mpuri'].blank? }
+    list = list['hv:imagelist']
+    fail "AppDB image list #{list_url.inspect} has expired" unless DateTime.parse(list['dc:date:expires']) > Time.now
+    fail "AppDB image list #{list_url.inspect} doesn't contain images" unless list['hv:images']
+
+    @_last_update = DateTime.parse list['dc:date:created']
+    @_hv_images = list['hv:images'].collect { |im| im['hv:image'] }.reject { |im| im.blank? || im['ad:mpuri'].blank? }
   end
 
   def normalize_mpuri(mpuri)
