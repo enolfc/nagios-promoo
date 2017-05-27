@@ -8,15 +8,47 @@ module Nagios
         class SyncProbe < Nagios::Promoo::Appdb::Probes::BaseProbe
           class << self
             def description
-              ['sync', 'Run a probe checking consistency between a published VO-wide image list and appliances available at the site (via AppDB)']
+              [
+                'sync',
+                'Run a probe checking consistency between a published VO-wide ' \
+                'image list and appliances available at the site (via AppDB)'
+              ]
             end
 
             def options
               [
-                [:vo, { type: :string, required: true, desc: 'Virtual Organization name (used to select the appropriate VO-wide image list)' }],
-                [:token, { type: :string, required: true, desc: 'AppDB authentication token (used to access the VO-wide image list)' }],
-                [:warning_after, { type: :numeric, default: 24, desc: 'A number of hours after list publication when missing or outdated appliances raise WARNING' }],
-                [:critical_after, { type: :numeric, default: 72, desc: 'A number of hours after list publication when missing or outdated appliances raise CRITICAL' }]
+                [
+                  :vo,
+                  {
+                    type: :string,
+                    required: true,
+                    desc: 'Virtual Organization name (used to select the appropriate VO-wide image list)'
+                  }
+                ],
+                [
+                  :token,
+                  {
+                    type: :string,
+                    required: true,
+                    desc: 'AppDB authentication token (used to access the VO-wide image list)'
+                  }
+                ],
+                [
+                  :warning_after,
+                  {
+                    type: :numeric,
+                    default: 24,
+                    desc: 'A number of hours after list publication when missing or outdated appliances raise WARNING'
+                  }
+                ],
+                [
+                  :critical_after,
+                  {
+                    type: :numeric,
+                    default: 72,
+                    desc: 'A number of hours after list publication when missing or outdated appliances raise CRITICAL'
+                  }
+                ]
               ]
             end
 
@@ -29,7 +61,8 @@ module Nagios
             end
           end
 
-          IMAGE_LIST_TEMPLATE = 'https://$$TOKEN$$:x-oauth-basic@vmcaster.appdb.egi.eu/store/vo/$$VO$$/image.list'.freeze
+          IMAGE_LIST_TEMPLATE = 'https://$$TOKEN$$:x-oauth-basic@vmcaster.appdb.egi.eu' \
+                                '/store/vo/$$VO$$/image.list'.freeze
 
           def run(_args = [])
             @_results = { found: [], outdated: [], missing: [], expected: [] }
@@ -97,22 +130,37 @@ module Nagios
           def vo_list
             return @_hv_images if @_hv_images
 
-            list_url = IMAGE_LIST_TEMPLATE.gsub('$$TOKEN$$', options[:token]).gsub('$$VO$$', options[:vo])
+            list = JSON.parse pkcs7_data
+            raise "AppDB image list #{list_url.inspect} is empty or malformed" unless list && list['hv:imagelist']
+
+            list = list['hv:imagelist']
+            unless DateTime.parse(list['dc:date:expires']) > Time.now
+              raise "AppDB image list #{list_url.inspect} has expired"
+            end
+            raise "AppDB image list #{list_url.inspect} doesn't contain images" unless list['hv:images']
+            @_last_update = DateTime.parse list['dc:date:created']
+
+            @_hv_images = list['hv:images'].collect { |im| im['hv:image'] }
+            @_hv_images.reject! { |im| im.blank? || im['ad:mpuri'].blank? }
+            @_hv_images
+          end
+
+          def pkcs7_data
+            content = OpenSSL::PKCS7.read_smime(retrieve_list)
+            content.data
+          end
+
+          def retrieve_list
             response = HTTParty.get list_url
             unless response.success?
               raise 'Could not get a VO-wide image list' \
                    "from #{list_url.inspect} [#{response.code}]"
             end
+            response.parsed_response
+          end
 
-            list = JSON.parse OpenSSL::PKCS7.read_smime(response.parsed_response).data
-            raise "AppDB image list #{list_url.inspect} is empty or malformed" unless list && list['hv:imagelist']
-
-            list = list['hv:imagelist']
-            raise "AppDB image list #{list_url.inspect} has expired" unless DateTime.parse(list['dc:date:expires']) > Time.now
-            raise "AppDB image list #{list_url.inspect} doesn't contain images" unless list['hv:images']
-
-            @_last_update = DateTime.parse list['dc:date:created']
-            @_hv_images = list['hv:images'].collect { |im| im['hv:image'] }.reject { |im| im.blank? || im['ad:mpuri'].blank? }
+          def list_url
+            IMAGE_LIST_TEMPLATE.gsub('$$TOKEN$$', options[:token]).gsub('$$VO$$', options[:vo])
           end
 
           def normalize_mpuri(mpuri)

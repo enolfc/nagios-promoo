@@ -20,6 +20,9 @@ Dir.glob(File.join(File.dirname(__FILE__), 'probes', '*.rb')) { |probe| require 
 module Nagios
   module Promoo
     module Appdb
+      # Master class for all AppDB probes.
+      #
+      # @author Boris Parak <parak@cesnet.cz>
       class Master < ::Thor
         class << self
           # Hack to override the help message produced by Thor.
@@ -29,13 +32,15 @@ module Nagios
           end
 
           def available_probes
-            Nagios::Promoo::Appdb::Probes.constants.collect do |probe|
+            probes = Nagios::Promoo::Appdb::Probes.constants.collect do |probe|
               Nagios::Promoo::Appdb::Probes.const_get(probe)
-            end.reject { |probe| !probe.runnable? }
+            end
+            probes.reject { |probe| !probe.runnable? }
           end
         end
 
-        class_option :endpoint, type: :string,
+        class_option :endpoint,
+                     type: :string,
                      desc: 'Site\'s OCCI endpoint, as specified in GOCDB',
                      default: 'http://localhost:3000/'
 

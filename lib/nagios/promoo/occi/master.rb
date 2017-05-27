@@ -23,6 +23,9 @@ Dir.glob(File.join(File.dirname(__FILE__), 'probes', '*.rb')) { |probe| require 
 module Nagios
   module Promoo
     module Occi
+      # Master class for all OCCI probes.
+      #
+      # @author Boris Parak <parak@cesnet.cz>
       class Master < ::Thor
         class << self
           # Hack to override the help message produced by Thor.
@@ -32,16 +35,22 @@ module Nagios
           end
 
           def available_probes
-            Nagios::Promoo::Occi::Probes.constants.collect do |probe|
+            probes = Nagios::Promoo::Occi::Probes.constants.collect do |probe|
               Nagios::Promoo::Occi::Probes.const_get(probe)
-            end.reject { |probe| !probe.runnable? }
+            end
+            probes.reject { |probe| !probe.runnable? }
           end
         end
 
         class_option :endpoint, type: :string, desc: 'OCCI-enabled endpoint', default: 'http://localhost:3000/'
-        class_option :auth, type: :string, desc: 'Authentication mechanism',
-                     enum: %w(x509-voms), default: 'x509-voms'
-        class_option :token, type: :string, desc: 'Authentication token',
+        class_option :auth,
+                     type: :string,
+                     desc: 'Authentication mechanism',
+                     enum: %w(x509-voms),
+                     default: 'x509-voms'
+        class_option :token,
+                     type: :string,
+                     desc: 'Authentication token',
                      default: "file:///tmp/x509up_u#{`id -u`.strip}"
 
         available_probes.each do |probe|

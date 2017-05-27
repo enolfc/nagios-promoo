@@ -23,6 +23,9 @@ Dir.glob(File.join(File.dirname(__FILE__), 'probes', '*.rb')) { |probe| require 
 module Nagios
   module Promoo
     module Opennebula
+      # Master class for all OpenNebula probes.
+      #
+      # @author Boris Parak <parak@cesnet.cz>
       class Master < ::Thor
         class << self
           # Hack to override the help message produced by Thor.
@@ -32,15 +35,20 @@ module Nagios
           end
 
           def available_probes
-            Nagios::Promoo::Opennebula::Probes.constants.collect do |probe|
+            probes = Nagios::Promoo::Opennebula::Probes.constants.collect do |probe|
               Nagios::Promoo::Opennebula::Probes.const_get(probe)
-            end.reject { |probe| !probe.runnable? }
+            end
+            probes.reject { |probe| !probe.runnable? }
           end
         end
 
-        class_option :endpoint, type: :string,
-                     desc: 'OpenNebula XML-RPC endpoint', default: 'http://localhost:2633/RPC2'
-        class_option :token, type: :string, desc: 'Authentication token',
+        class_option :endpoint,
+                     type: :string,
+                     desc: 'OpenNebula XML-RPC endpoint',
+                     default: 'http://localhost:2633/RPC2'
+        class_option :token,
+                     type: :string,
+                     desc: 'Authentication token',
                      default: "file://#{ENV['HOME']}/.one/one_auth"
 
         available_probes.each do |probe|
