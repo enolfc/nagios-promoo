@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.version       = Nagios::Promoo::VERSION
   spec.authors       = ['Boris Parak']
   spec.email         = ['parak@cesnet.cz']
-  spec.summary       = %q{Nagios Probes for Monitoring OpenNebula and OCCI}
-  spec.description   = %q{Nagios Probes for Monitoring OpenNebula and OCCI}
-  spec.homepage      = 'https://github.com/EGI-FCTF/nagios-promoo'
+  spec.summary       = 'Nagios Probes for Monitoring OpenNebula and OCCI'
+  spec.description   = 'Nagios Probes for Monitoring OpenNebula and OCCI'
+  spec.homepage      = 'https://github.com/arax/nagios-promoo'
   spec.license       = 'Apache License, Version 2.0'
 
   spec.files         = `git ls-files -z`.split("\x0")

@@ -10,11 +10,17 @@ require 'date'
 # Force multi_xml to use ox
 MultiXml.parser = :ox
 
-# Define modules
-module Nagios; end
-module Nagios::Promoo; end
+# Gem namespace module.
+#
+# @author Boris Parak <parak@cesnet.cz>
+module Nagios
+  # Namespace for `promoo` classes and modules.
+  #
+  # @author Boris Parak <parak@cesnet.cz>
+  module Promoo; end
+end
 
 # Include necessary files
-require "nagios/promoo/version"
-require "nagios/promoo/utils"
-require "nagios/promoo/master"
+require 'nagios/promoo/version'
+require 'nagios/promoo/utils'
+require 'nagios/promoo/master'
