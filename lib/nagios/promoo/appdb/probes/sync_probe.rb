@@ -1,10 +1,10 @@
 # Internal deps
 require File.join(File.dirname(__FILE__), 'base_probe')
 
-class Nagios::Promoo::Appdb::Probes::VmcatcherProbe < Nagios::Promoo::Appdb::Probes::BaseProbe
+class Nagios::Promoo::Appdb::Probes::SyncProbe < Nagios::Promoo::Appdb::Probes::BaseProbe
   class << self
     def description
-      ['vmcatcher', 'Run a probe checking consistency between a vmcatcher image list and available appliances (via AppDB)']
+      ['sync', 'Run a probe checking consistency between a published VO-wide image list and appliances available at the site (via AppDB)']
     end
 
     def options
@@ -17,7 +17,7 @@ class Nagios::Promoo::Appdb::Probes::VmcatcherProbe < Nagios::Promoo::Appdb::Pro
     end
 
     def declaration
-      "vmcatcher"
+      'sync'
     end
 
     def runnable?; true; end
@@ -34,24 +34,24 @@ class Nagios::Promoo::Appdb::Probes::VmcatcherProbe < Nagios::Promoo::Appdb::Pro
     wrong = @_results[:missing] + @_results[:outdated]
     if wrong.any?
       if (@_last_update + options[:critical_after].hours) < Time.now
-        puts "VMCATCHER CRITICAL - Appliance(s) #{wrong.inspect} missing " \
+        puts "SYNC CRITICAL - Appliance(s) #{wrong.inspect} missing " \
              "or outdated in #{options[:vo].inspect} " \
              "more than #{options[:critical_after]} hours after list publication [#{@_last_update}]"
         exit 2
       end
 
       if (@_last_update + options[:warning_after].hours) < Time.now
-        puts "VMCATCHER WARNING - Appliance(s) #{wrong.inspect} missing " \
+        puts "SYNC WARNING - Appliance(s) #{wrong.inspect} missing " \
              "or outdated in #{options[:vo].inspect} " \
              "more than #{options[:warning_after]} hours after list publication [#{@_last_update}]"
         exit 1
       end
     end
 
-    puts "VMCATCHER OK - All appliances registered in #{options[:vo].inspect} " \
+    puts "SYNC OK - All appliances registered in #{options[:vo].inspect} " \
          "are available [#{@_results[:expected].count}]"
   rescue => ex
-    puts "VMCATCHER UNKNOWN - #{ex.message}"
+    puts "SYNC UNKNOWN - #{ex.message}"
     puts ex.backtrace if options[:debug]
     exit 3
   end
