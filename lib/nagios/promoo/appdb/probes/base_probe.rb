@@ -2,6 +2,9 @@ module Nagios
   module Promoo
     module Appdb
       module Probes
+        # Base probe class for all AppDB-related probes.
+        #
+        # @author Boris Parak <parak@cesnet.cz>
         class BaseProbe
           class << self
             def runnable?
@@ -26,25 +29,25 @@ module Nagios
           def appdb_provider
             return @_provider if @_provider
 
-            response = HTTParty.post(APPDB_PROXY_URL, body: APPDB_REQUEST_FORM)
-            unless response.success?
-              raise 'Could not get site'\
-                   "details from AppDB [HTTP #{response.code}]"
-            end
-            raise 'Response from AppDB has unexpected structure' unless valid_response?(response.parsed_response)
-
-            providers = response.parsed_response['appdb:broker']['appdb:reply']['appdb:appdb']['virtualization:provider']
-            providers.delete_if { |prov| prov['provider:endpoint_url'].blank? }
-
-            @_provider = providers.select do |prov|
+            @_provider = appdb_providers.detect do |prov|
               prov['provider:endpoint_url'].chomp('/') == options[:endpoint].chomp('/')
-            end.first
+            end
             raise "Could not locate site by endpoint #{options[:endpoint].inspect} in AppDB" unless @_provider
 
             @_provider
           end
 
           private
+
+          def appdb_providers
+            response = HTTParty.post(APPDB_PROXY_URL, body: APPDB_REQUEST_FORM)
+            raise "Could not get site details from AppDB [HTTP #{response.code}]" unless response.success?
+            raise 'Response from AppDB has unexpected structure' unless valid_response?(response.parsed_response)
+
+            providers = response.parsed_response['appdb:broker']['appdb:reply']\
+                                                ['appdb:appdb']['virtualization:provider']
+            providers.delete_if { |prov| prov['provider:endpoint_url'].blank? }
+          end
 
           def valid_response?(response)
             response['appdb:broker'] \

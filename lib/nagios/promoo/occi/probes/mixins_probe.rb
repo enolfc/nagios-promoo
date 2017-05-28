@@ -5,6 +5,9 @@ module Nagios
   module Promoo
     module Occi
       module Probes
+        # Probe for checking OCCI mixins declared by sites.
+        #
+        # @author Boris Parak <parak@cesnet.cz>
         class MixinsProbe < Nagios::Promoo::Occi::Probes::BaseProbe
           class << self
             def description
@@ -16,7 +19,7 @@ module Nagios
                 [
                   :mixins,
                   {
-                    type: :string, enum: %w(infra context all),
+                    type: :string, enum: %w[infra context all],
                     default: 'all', desc: 'Collection of mandatory mixins to check'
                   }
                 ],
@@ -39,20 +42,20 @@ module Nagios
             end
           end
 
-          INFRA_MIXINS = %w(
+          INFRA_MIXINS = %w[
             http://schemas.ogf.org/occi/infrastructure#os_tpl
             http://schemas.ogf.org/occi/infrastructure#resource_tpl
-          ).freeze
+          ].freeze
 
-          CONTEXT_MIXINS = %w(
+          CONTEXT_MIXINS = %w[
             http://schemas.openstack.org/instance/credentials#public_key
             http://schemas.openstack.org/compute/instance#user_data
-          ).freeze
+          ].freeze
 
           def run(_args = [])
             mixins = []
-            mixins += INFRA_MIXINS if %w(infra all).include?(options[:mixins])
-            mixins += CONTEXT_MIXINS if %w(context all).include?(options[:mixins])
+            mixins += INFRA_MIXINS if %w[infra all].include?(options[:mixins])
+            mixins += CONTEXT_MIXINS if %w[context all].include?(options[:mixins])
             mixins -= options[:optional] if options[:optional]
 
             Timeout.timeout(options[:timeout]) do

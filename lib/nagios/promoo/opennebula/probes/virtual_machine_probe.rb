@@ -5,6 +5,9 @@ module Nagios
   module Promoo
     module Opennebula
       module Probes
+        # Probe for checking VM instantiation via ONe RPC2.
+        #
+        # @author Boris Parak <parak@cesnet.cz>
         class VirtualMachineProbe < Nagios::Promoo::Opennebula::Probes::BaseProbe
           class << self
             def description
@@ -72,7 +75,9 @@ module Nagios
             begin
               cleanup @_virtual_machine unless @_virtual_machine.blank?
             rescue => ex
-              ## ignoring
+              puts "VirtualMachine CRITICAL - #{ex.message}"
+              puts ex.backtrace if options[:debug]
+              exit 2
             end
           end
 
@@ -103,7 +108,10 @@ module Nagios
           def wait4running
             Timeout.timeout(options[:vm_timeout]) do
               while @_virtual_machine.lcm_state_str != 'RUNNING'
-                raise 'Instance deployment failed (resulting state is "*_FAILED")' if @_virtual_machine.lcm_state_str.include?('FAILURE')
+                if @_virtual_machine.lcm_state_str.include?('FAILURE')
+                  raise 'Instance deployment failed (resulting state is "*_FAILED")'
+                end
+
                 rc = @_virtual_machine.info
                 raise rc.message if OpenNebula.is_error?(rc)
               end

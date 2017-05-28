@@ -5,6 +5,9 @@ module Nagios
   module Promoo
     module Opennebula
       module Probes
+        # Probe for checking ONe XML RPC2 health.
+        #
+        # @author Boris Parak <parak@cesnet.cz>
         class XmlrpcHealthProbe < Nagios::Promoo::Opennebula::Probes::BaseProbe
           class << self
             def description

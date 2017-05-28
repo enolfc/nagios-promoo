@@ -35,7 +35,7 @@ module Nagios
             probes = Nagios::Promoo::Appdb::Probes.constants.collect do |probe|
               Nagios::Promoo::Appdb::Probes.const_get(probe)
             end
-            probes.reject { |probe| !probe.runnable? }
+            probes.select(&:runnable?)
           end
         end
 

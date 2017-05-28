@@ -5,6 +5,9 @@ module Nagios
   module Promoo
     module Occi
       module Probes
+        # Probe for checking OCCI kinds declared by sites.
+        #
+        # @author Boris Parak <parak@cesnet.cz>
         class KindsProbe < Nagios::Promoo::Occi::Probes::BaseProbe
           class << self
             def description
@@ -16,7 +19,7 @@ module Nagios
                 [
                   :kinds,
                   {
-                    type: :string, enum: %w(core infra all), default: 'all',
+                    type: :string, enum: %w[core infra all], default: 'all',
                     desc: 'Collection of mandatory kinds to check'
                   }
                 ],
@@ -46,24 +49,24 @@ module Nagios
             end
           end
 
-          CORE_KINDS = %w(
+          CORE_KINDS = %w[
             http://schemas.ogf.org/occi/core#entity
             http://schemas.ogf.org/occi/core#resource
             http://schemas.ogf.org/occi/core#link
-          ).freeze
+          ].freeze
 
-          INFRA_KINDS = %w(
+          INFRA_KINDS = %w[
             http://schemas.ogf.org/occi/infrastructure#compute
             http://schemas.ogf.org/occi/infrastructure#storage
             http://schemas.ogf.org/occi/infrastructure#network
             http://schemas.ogf.org/occi/infrastructure#storagelink
             http://schemas.ogf.org/occi/infrastructure#networkinterface
-          ).freeze
+          ].freeze
 
           def run(_args = [])
             kinds = []
-            kinds += CORE_KINDS if %w(core all).include?(options[:kinds])
-            kinds += INFRA_KINDS if %w(infra all).include?(options[:kinds])
+            kinds += CORE_KINDS if %w[core all].include?(options[:kinds])
+            kinds += INFRA_KINDS if %w[infra all].include?(options[:kinds])
             kinds -= options[:optional] if options[:optional]
 
             Timeout.timeout(options[:timeout]) do

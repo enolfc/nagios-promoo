@@ -2,6 +2,9 @@ module Nagios
   module Promoo
     module Occi
       module Probes
+        # Base probe for all OCCI-related probes.
+        #
+        # @author Boris Parak <parak@cesnet.cz>
         class BaseProbe
           class << self
             def runnable?

@@ -38,7 +38,7 @@ module Nagios
             probes = Nagios::Promoo::Occi::Probes.constants.collect do |probe|
               Nagios::Promoo::Occi::Probes.const_get(probe)
             end
-            probes.reject { |probe| !probe.runnable? }
+            probes.select(&:runnable?)
           end
         end
 
@@ -46,7 +46,7 @@ module Nagios
         class_option :auth,
                      type: :string,
                      desc: 'Authentication mechanism',
-                     enum: %w(x509-voms),
+                     enum: %w[x509-voms],
                      default: 'x509-voms'
         class_option :token,
                      type: :string,

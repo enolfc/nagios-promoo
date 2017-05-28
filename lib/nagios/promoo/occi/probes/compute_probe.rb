@@ -5,6 +5,9 @@ module Nagios
   module Promoo
     module Occi
       module Probes
+        # Probe for checking compute instantiation via OCCI.
+        #
+        # @author Boris Parak <parak@cesnet.cz>
         class ComputeProbe < Nagios::Promoo::Occi::Probes::BaseProbe
           class << self
             def description
@@ -35,9 +38,9 @@ module Nagios
             end
           end
 
-          READY_STATES = %w(active online).freeze
-          NONREADY_STATES = %w(inactive offline).freeze
-          ERROR_STATES = %w(error).freeze
+          READY_STATES = %w[active online].freeze
+          NONREADY_STATES = %w[inactive offline].freeze
+          ERROR_STATES = %w[error].freeze
 
           CPU_SUM_WEIGHT = 1000
           COMPUTE_NAME_PREFIX = 'sam-nagios-promoo'.freeze
@@ -76,7 +79,13 @@ module Nagios
             puts ex.backtrace if options[:debug]
             exit 2
           ensure
-            mandatory_cleanup @_links
+            begin
+              mandatory_cleanup @_links
+            rescue => ex
+              puts "COMPUTE CRITICAL - #{ex.message}"
+              puts ex.backtrace if options[:debug]
+              exit 2
+            end
           end
 
           def compute_create
@@ -120,10 +129,9 @@ module Nagios
           end
 
           def mandatory_cleanup_part(link, wait4inactive)
+            return if link.blank?
             client.delete link
             wait4inactive(link) if wait4inactive
-          rescue
-            # ignore
           end
 
           def get_mixin(term, type)
@@ -164,9 +172,9 @@ module Nagios
             appliances = [appdb_provider['provider:image']].flatten.compact
             appliances.delete_if { |appl| appl['mp_uri'].blank? }
 
-            appliance = appliances.select do |appl|
+            appliance = appliances.detect do |appl|
               normalize_mpuri(appl['mp_uri']) == normalize_mpuri(options[:mpuri])
-            end.first
+            end
             if appliance.blank?
               raise 'Site does not have an appliance with MPURI '\
                    "#{normalize_mpuri(options[:mpuri]).inspect} published in AppDB"
@@ -182,7 +190,8 @@ module Nagios
             templates.each do |template|
               sizes << [
                 template['provider_template:resource_name'].split('#').last,
-                template['provider_template:main_memory_size'].to_i + (template['provider_template:physical_cpus'].to_i * CPU_SUM_WEIGHT)
+                template['provider_template:main_memory_size'].to_i \
+                + (template['provider_template:physical_cpus'].to_i * CPU_SUM_WEIGHT)
               ]
             end
             raise 'No appliance sizes available in AppDB' if sizes.blank?
@@ -194,30 +203,30 @@ module Nagios
           def appdb_provider
             return @_provider if @_provider
 
-            parsed_response = cache_fetch('appdb-sites', options[:cache_expiration]) do
-              response = HTTParty.post(APPDB_PROXY_URL, body: APPDB_REQUEST_FORM)
-              unless response.success?
-                raise 'Could not get appliance '\
-                     "details from AppDB [#{response.code}]"
-              end
-              raise 'Response from AppDB has unexpected structure' unless valid_response?(response.parsed_response)
-
-              response.parsed_response
-            end
-
-            providers = parsed_response['appdb:broker']['appdb:reply']['appdb:appdb']['virtualization:provider']
-            providers.delete_if { |prov| prov['provider:endpoint_url'].blank? }
-
-            @_provider = providers.select do |prov|
+            @_provider = appdb_providers.detect do |prov|
               prov['provider:endpoint_url'].chomp('/') == options[:endpoint].chomp('/')
-            end.first
+            end
             raise "Could not locate site by endpoint #{options[:endpoint].inspect} in AppDB" unless @_provider
 
             @_provider
           end
 
+          def appdb_providers
+            parsed_response = cache_fetch('appdb-sites', options[:cache_expiration]) do
+              response = HTTParty.post(APPDB_PROXY_URL, body: APPDB_REQUEST_FORM)
+              raise "Could not get appliance details from AppDB [#{response.code}]" unless response.success?
+              raise 'Response from AppDB has unexpected structure' unless valid_response?(response.parsed_response)
+
+              response.parsed_response
+            end
+
+            providers = parsed_response['appdb:broker']['appdb:reply']\
+                                       ['appdb:appdb']['virtualization:provider']
+            providers.delete_if { |prov| prov['provider:endpoint_url'].blank? }
+          end
+
           def normalize_mpuri(mpuri)
-            mpuri.gsub(/\/+$/, '').gsub(/:\d+$/, '')
+            mpuri.gsub(%r{/+$}, '').gsub(/:\d+$/, '')
           end
 
           def valid_response?(response)

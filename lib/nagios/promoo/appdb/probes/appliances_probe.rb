@@ -5,6 +5,9 @@ module Nagios
   module Promoo
     module Appdb
       module Probes
+        # Probe for checking appliance availability in AppDB.
+        #
+        # @author Boris Parak <parak@cesnet.cz>
         class AppliancesProbe < Nagios::Promoo::Appdb::Probes::BaseProbe
           class << self
             def description

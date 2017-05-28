@@ -38,7 +38,7 @@ module Nagios
             probes = Nagios::Promoo::Opennebula::Probes.constants.collect do |probe|
               Nagios::Promoo::Opennebula::Probes.const_get(probe)
             end
-            probes.reject { |probe| !probe.runnable? }
+            probes.select(&:runnable?)
           end
         end
 

@@ -5,6 +5,9 @@ module Nagios
   module Promoo
     module Appdb
       module Probes
+        # Probe for checking appliance synchronization between sites and AppDB.
+        #
+        # @author Boris Parak <parak@cesnet.cz>
         class SyncProbe < Nagios::Promoo::Appdb::Probes::BaseProbe
           class << self
             def description
@@ -101,8 +104,7 @@ module Nagios
               mpuri_versionless = versionless_mpuri(hv_image['ad:mpuri'])
               @_results[:expected] << mpuri_versionless
 
-              matching = provider_appliances.select { |appl| appl['mp_uri'] == mpuri_versionless }.first
-
+              matching = provider_appliances.detect { |appl| appl['mp_uri'] == mpuri_versionless }
               unless matching
                 @_results[:missing] << mpuri_versionless
                 next
@@ -164,7 +166,7 @@ module Nagios
           end
 
           def normalize_mpuri(mpuri)
-            mpuri.gsub(/\/+$/, '')
+            mpuri.gsub(%r{/+$}, '')
           end
 
           def versionless_mpuri(mpuri)

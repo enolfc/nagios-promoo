@@ -7,6 +7,9 @@ module Nagios
   module Promoo
     module Occi
       module Probes
+        # Probe for checking OCCI categories declared by endpoints.
+        #
+        # @author Boris Parak <parak@cesnet.cz>
         class CategoriesProbe < Nagios::Promoo::Occi::Probes::BaseProbe
           class << self
             def description
