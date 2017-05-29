@@ -35,5 +35,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rubocop', '>= 0.47', '< 1'
   spec.add_development_dependency 'pry', '>= 0.10', '< 1'
 
-  spec.required_ruby_version = '>= 1.9.3'
+  spec.required_ruby_version = '>= 2.2.0'
 end
