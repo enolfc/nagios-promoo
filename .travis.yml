@@ -8,6 +8,8 @@ rvm:
 
 matrix:
   allow_failures:
+    - rvm: 2.3.0
+    - rvm: 2.4.0
     - rvm: ruby-head
   fast_finish: true
 
