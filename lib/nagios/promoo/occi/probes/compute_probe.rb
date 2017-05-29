@@ -89,7 +89,7 @@ module Nagios
           end
 
           def compute_create
-            client.delete('compute') if options[:cleanup]
+            search_and_destroy('compute') if options[:cleanup]
 
             compute = client.get_resource('compute')
             compute.title = compute.hostname = "#{COMPUTE_NAME_PREFIX}-#{Time.now.to_i}"
@@ -103,7 +103,7 @@ module Nagios
           end
 
           def storage_create
-            client.delete('storage') if options[:cleanup]
+            search_and_destroy('storage') if options[:cleanup]
 
             storage = client.get_resource('storage')
             storage.title = "#{COMPUTE_NAME_PREFIX}-block-#{Time.now.to_i}"
@@ -138,6 +138,17 @@ module Nagios
             mxn = client.get_mixin(term, type, true)
             raise "Mixin #{term.inspect} of type #{type.inspect} not found at the site" unless mxn
             mxn
+          end
+
+          def search_and_destroy(kind)
+            raise 'You have to specifiy a kind' if kind.blank?
+
+            client.describe(kind).each do |instance|
+              raise 'Attempting to clean up title-less instance' unless instance.respond_to?(:title)
+              raise 'Attempting to clean up location-less instance' unless instance.respond_to?(:location)
+              next unless instance.title.start_with?(COMPUTE_NAME_PREFIX)
+              client.delete instance.location
+            end
           end
 
           def wait4ready(link)
