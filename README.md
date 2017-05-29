@@ -1,4 +1,4 @@
-# Nagios Probes for Monitoring OpenNebula and OCCI-enabled clouds
+# Nagios Probes for Monitoring OCA and OCCI
 [![Travis](https://img.shields.io/travis/arax/nagios-promoo.svg?style=flat-square)](http://travis-ci.org/arax/nagios-promoo)
 [![Gemnasium](https://img.shields.io/gemnasium/arax/nagios-promoo.svg?style=flat-square)](https://gemnasium.com/arax/nagios-promoo)
 [![Gem](https://img.shields.io/gem/v/nagios-promoo.svg?style=flat-square)](https://rubygems.org/gems/nagios-promoo)
@@ -6,11 +6,11 @@
 
 ## Installation
 
-    $ gem install nagios-promoo
+  $ gem install nagios-promoo
 
 ## Usage
 
-	$ nagios-promoo help
+  $ nagios-promoo help
 
 ## Contributing
 
