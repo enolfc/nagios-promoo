@@ -25,6 +25,7 @@ module Nagios
                 type: options[:auth].gsub('-voms', ''),
                 user_cert: options[:token].gsub('file://', ''),
                 user_cert_password: nil,
+                token: options[:token],
                 ca_path: options[:ca_path],
                 voms: options[:auth] == 'x509-voms' ? true : false
               },
