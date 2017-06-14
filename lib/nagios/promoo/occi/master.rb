@@ -23,7 +23,7 @@ class Nagios::Promoo::Occi::Master < ::Thor
   end
 
   class_option :endpoint, type: :string, desc: 'OCCI-enabled endpoint', default: 'http://localhost:3000/'
-  class_option :auth, type: :string, desc: 'Authentication mechanism', enum: %w(x509-voms), default: 'x509-voms'
+  class_option :auth, type: :string, desc: 'Authentication mechanism', enum: %w(x509-voms token), default: 'x509-voms'
   class_option :token, type: :string, desc: 'Authentication token', default: "file:///tmp/x509up_u#{`id -u`.strip}"
 
   available_probes.each do |probe|
