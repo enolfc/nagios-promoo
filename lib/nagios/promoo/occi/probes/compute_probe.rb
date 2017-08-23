@@ -16,7 +16,15 @@ module Nagios
 
             def options
               [
-                [:mpuri, { type: :string, required: true, desc: 'AppDB MPURI referencing a virtual appliance' }],
+                [:appid, { type: :string, required: true, desc: 'AppDB ID referencing a virtual appliance' }],
+                [
+                  :vo,
+                  {
+                    type: :string,
+                    required: true,
+                    desc: 'Virtual Organization name (used to select the appropriate template)'
+                  }
+                ],
                 [
                   :with_storage,
                   {
@@ -174,14 +182,14 @@ module Nagios
 
           def appdb_appliance
             appliances = [appdb_provider['provider:image']].flatten.compact
-            appliances.delete_if { |appl| appl['mp_uri'].blank? }
+            appliances.delete_if { |appl| appl['appid'].blank? }
 
             appliance = appliances.detect do |appl|
-              normalize_mpuri(appl['mp_uri']) == normalize_mpuri(options[:mpuri])
+              appl['appid'] == options[:appid] and appl['voname'] == options[:vo]
             end
             if appliance.blank?
-              raise 'Site does not have an appliance with MPURI '\
-                   "#{normalize_mpuri(options[:mpuri]).inspect} published in AppDB"
+              raise 'Site does not have an appliance with AppID '\
+                   "#{options[:appid]} published in AppDB for VO #{options[:vo]}"
             end
 
             appliance['va_provider_image_id'].split('#').last
