@@ -185,7 +185,7 @@ module Nagios
             appliances.delete_if { |appl| appl['appid'].blank? }
 
             appliance = appliances.detect do |appl|
-              appl['appid'] == options[:appid] and appl['voname'] == options[:vo]
+              appl['appid'] == options[:appid] && appl['voname'] == options[:vo]
             end
             if appliance.blank?
               raise 'Site does not have an appliance with AppID '\
