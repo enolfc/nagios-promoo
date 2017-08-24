@@ -22,7 +22,7 @@ module Nagios
                   {
                     type: :string,
                     required: true,
-                    desc: 'Virtual Organization name (used to select the appropriate template)'
+                    desc: 'Virtual Organization name used to select the appropriate virtual appliance'
                   }
                 ],
                 [
