@@ -46,7 +46,7 @@ module Nagios
         class_option :auth,
                      type: :string,
                      desc: 'Authentication mechanism',
-                     enum: %w[x509-voms token],
+                     enum: %w[x509-voms token oauth2],
                      default: 'x509-voms'
         class_option :token,
                      type: :string,
