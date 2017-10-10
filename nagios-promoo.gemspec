@@ -12,14 +12,14 @@ Gem::Specification.new do |spec|
   spec.summary       = 'Nagios Probes for Monitoring OpenNebula and OCCI'
   spec.description   = 'Nagios Probes for Monitoring OpenNebula and OCCI'
   spec.homepage      = 'https://github.com/arax/nagios-promoo'
-  spec.license       = 'Apache License, Version 2.0'
+  spec.license       = 'Apache-2.0'
 
   spec.files         = `git ls-files -z`.split("\x0")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.add_runtime_dependency     'occi-api', '>= 4.3.13', '< 5'
+  spec.add_runtime_dependency     'occi-api', '>= 4.3.15', '< 5'
   spec.add_runtime_dependency     'opennebula', '>= 5.2.1', '< 6'
   spec.add_runtime_dependency     'thor', '>= 0.19.4', '< 1'
   spec.add_runtime_dependency     'yell', '>= 2.0.7', '< 3'
