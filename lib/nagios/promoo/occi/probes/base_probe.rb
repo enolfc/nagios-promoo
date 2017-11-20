@@ -27,7 +27,7 @@ module Nagios
                 user_cert_password: nil,
                 token: options[:token],
                 ca_path: options[:ca_path],
-                voms: options[:auth] == 'x509-voms' ? true : false
+                voms: options[:auth] == 'x509-voms'
               },
               log: {
                 level: options[:debug] ? ::Occi::Api::Log::DEBUG : ::Occi::Api::Log::ERROR,
