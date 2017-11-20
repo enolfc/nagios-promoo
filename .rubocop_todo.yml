@@ -37,3 +37,8 @@ Lint/RescueWithoutErrorClass:
 Style/CommentedKeyword:
   Exclude:
   - 'lib/nagios/promoo/*/master.rb'
+
+#
+Lint/HandleExceptions:
+  Exclude:
+  - 'lib/nagios/promoo/occi/probes/compute_probe.rb'

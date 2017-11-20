@@ -142,14 +142,15 @@ module Nagios
           end
 
           def search_and_destroy(kind)
-            raise 'You have to specifiy a kind' if kind.blank?
+            return if kind.blank?
 
             client.describe(kind).each do |instance|
-              raise 'Attempting to clean up title-less instance' unless instance.respond_to?(:title)
-              raise 'Attempting to clean up location-less instance' unless instance.respond_to?(:location)
+              next unless instance.respond_to?(:title) && instance.respond_to?(:location)
               next unless instance.title.start_with?(COMPUTE_NAME_PREFIX)
               client.delete instance.location
             end
+          rescue => _ex
+            # ignore all errors here
           end
 
           def wait4ready(link)
