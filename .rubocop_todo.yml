@@ -27,3 +27,13 @@ Metrics/MethodLength:
 # Offense count: 3
 Metrics/PerceivedComplexity:
   Max: 10
+
+#
+Lint/RescueWithoutErrorClass:
+  Exclude:
+  - '**/*'
+
+#
+Style/CommentedKeyword:
+  Exclude:
+  - 'lib/nagios/promoo/*/master.rb'

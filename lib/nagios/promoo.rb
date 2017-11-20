@@ -5,7 +5,7 @@ require 'timeout'
 require 'ox'
 require 'multi_xml'
 require 'httparty'
-require 'date'
+require 'time'
 
 # Force multi_xml to use ox
 MultiXml.parser = :ox

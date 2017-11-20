@@ -136,11 +136,11 @@ module Nagios
             raise "AppDB image list #{list_url.inspect} is empty or malformed" unless list && list['hv:imagelist']
 
             list = list['hv:imagelist']
-            unless DateTime.parse(list['dc:date:expires']) > Time.now
+            unless Time.parse(list['dc:date:expires']) > Time.now
               raise "AppDB image list #{list_url.inspect} has expired"
             end
             raise "AppDB image list #{list_url.inspect} doesn't contain images" unless list['hv:images']
-            @_last_update = DateTime.parse list['dc:date:created']
+            @_last_update = Time.parse(list['dc:date:created'])
 
             @_hv_images = list['hv:images'].collect { |im| im['hv:image'] }
             @_hv_images.reject! { |im| im.blank? || im['ad:mpuri'].blank? }
