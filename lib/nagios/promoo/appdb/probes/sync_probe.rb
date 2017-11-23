@@ -67,6 +67,15 @@ module Nagios
           IMAGE_LIST_TEMPLATE = 'https://$$TOKEN$$:x-oauth-basic@vmcaster.appdb.egi.eu' \
                                 '/store/vo/$$VO$$/image.list'.freeze
 
+          VO_IMAGES_QUERY_TEMPLATE = '{' \
+            ' siteServiceImages(filter: {imageVoVmiInstanceVO: {eq: "$$VO$$"}, service: {endpointURL: {eq: "$$ENDPOINT$$"}}}, limit: 1000) {' \
+            '    items {' \
+	    '      applicationEnvironmentRepository' \
+	    '      applicationEnvironmentAppVersion' \
+            '    } } }'.freeze
+
+          APPDB_IS_URL = 'http://is.marie.hellasgrid.gr/graphql'.freeze
+
           def run(_args = [])
             @_results = { found: [], outdated: [], missing: [], expected: [] }
 
@@ -110,7 +119,7 @@ module Nagios
                 next
               end
 
-              @_results[:outdated] << mpuri_versionless if hv_image['hv:version'] != matching['vmiversion']
+              @_results[:outdated] << mpuri_versionless if hv_image['hv:version'] != matching['applicationEnvironmentAppVersion']
               @_results[:found] << mpuri_versionless
             end
           end
@@ -118,15 +127,18 @@ module Nagios
           def provider_appliances
             return @_appliances if @_appliances
 
-            @_appliances = [appdb_provider['provider:image']].flatten.compact
-            @_appliances.keep_if { |appliance| appliance['voname'] == options[:vo] }
-            @_appliances.reject { |appliance| appliance['mp_uri'].blank? }
+            response = HTTParty.post(APPDB_IS_URL, :body => { :query => vo_endpoint_images_query }.to_json(),
+				     :headers => { 'Content-Type' => 'application/json' } )
+            raise "Could not get site details from AppDB [HTTP #{response.code}]" unless response.success?
 
-            @_appliances.each do |appliance|
-              appliance['mp_uri'] = versionless_mpuri(appliance['mp_uri'])
+            @_appliances = response['data']['siteServiceImages']['items'].each do |app_env|
+               app_env['mp_uri'] = versionless_mpuri(app_env['applicationEnvironmentRepository'])
             end
-
             @_appliances
+          end
+
+          def vo_endpoint_images_query
+            VO_IMAGES_QUERY_TEMPLATE.gsub('$$ENDPOINT$$', options[:endpoint]).gsub('$$VO$$', options[:vo])
           end
 
           def vo_list
