@@ -15,7 +15,16 @@ module Nagios
             end
 
             def options
-              []
+              [
+                [
+                  :vo,
+                  {
+                    type: :string,
+                    required: true,
+                    desc: 'Virtual Organization name (used to select the appropriate set of appliances)'
+                  }
+                ]
+              ]
             end
 
             def declaration
@@ -28,26 +37,17 @@ module Nagios
           end
 
           def run(_args = [])
-            @_count = 0
-
-            Timeout.timeout(options[:timeout]) { check_appliances }
-
-            if @_count < 1
-              puts 'APPLIANCES CRITICAL - No appliances found in AppDB'
+            count = Timeout.timeout(options[:timeout]) { appliances_by_endpoint(options[:vo]).count }
+            if count < 1
+              puts "APPLIANCES CRITICAL - No appliances found for VO #{options[:vo]} in AppDB"
               exit 2
             end
 
-            puts "APPLIANCES OK - Found #{@_count} appliances in AppDB"
+            puts "APPLIANCES OK - Found #{count} appliances for VO #{options[:vo]} in AppDB"
           rescue => ex
             puts "APPLIANCES UNKNOWN - #{ex.message}"
             puts ex.backtrace if options[:debug]
             exit 3
-          end
-
-          private
-
-          def check_appliances
-            @_count = [appdb_provider['provider:image']].flatten.compact.count
           end
         end
       end

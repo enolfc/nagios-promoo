@@ -12,39 +12,61 @@ module Nagios
             end
           end
 
-          APPDB_PROVIDERS_URL = 'https://appdb.egi.eu/rest/1.0/va_providers?listmode=details'.freeze
+          APPDB_IS_URL = 'http://is.marie.hellasgrid.gr/graphql'.freeze
+          DEFAULT_HEADERS = { 'Content-Type' => 'application/json' }.freeze
+          GQL_SIZES_BY_ENDPOINT = %|
+{
+  siteServiceTemplates(
+    filter: { service: { endpointURL: { eq: "$$ENDPOINT$$" } } }, limit: 1000
+  ) {
+    items { resourceID }
+  }
+}
+|.freeze
+          GQL_APPLIANCES_BY_ENDPOINT = %|
+{
+  siteServiceImages(
+    filter: { imageVoVmiInstanceVO: { eq: "$$VO$$" }, service: { endpointURL: { eq: "$$ENDPOINT$$" } } }, limit: 1000
+  ) {
+    items { applicationEnvironmentRepository applicationEnvironmentAppVersion }
+  }
+}
+|.freeze
 
-          attr_reader :options
+          attr_reader :options, :endpoint
 
           def initialize(options)
             @options = options
+            @endpoint = options[:endpoint].gsub(%r{/+$}, '')
           end
 
-          def appdb_provider
-            return @_provider if @_provider
+          def sizes_by_endpoint
+            return @_sizes if @_sizes
 
-            @_provider = appdb_providers.detect do |prov|
-              prov['provider:endpoint_url'].chomp('/') == options[:endpoint].chomp('/')
-            end
-            raise "Could not locate site by endpoint #{options[:endpoint].inspect} in AppDB" unless @_provider
+            query = GQL_SIZES_BY_ENDPOINT.gsub('$$ENDPOINT$$', endpoint)
+            @_sizes = make(query)['data']['siteServiceTemplates']['items']
+            raise "Could not locate sizes from endpoint #{endpoint.inspect} in AppDB" unless @_sizes
 
-            @_provider
+            @_sizes
+          end
+
+          def appliances_by_endpoint(vo)
+            return @_appliances if @_appliances
+
+            query = GQL_APPLIANCES_BY_ENDPOINT.gsub('$$ENDPOINT$$', endpoint).gsub('$$VO$$', vo)
+            @_appliances = make(query)['data']['siteServiceImages']['items']
+            raise "Could not locate appliances from endpoint #{endpoint.inspect} in AppDB" unless @_appliances
+
+            @_appliances
           end
 
           private
 
-          def appdb_providers
-            response = HTTParty.get(APPDB_PROVIDERS_URL)
-            raise "Could not get site details from AppDB [HTTP #{response.code}]" unless response.success?
-            raise 'Response from AppDB has unexpected structure' unless valid_response?(response.parsed_response)
+          def make(query)
+            response = HTTParty.post(APPDB_IS_URL, body: { query: query }.to_json, headers: DEFAULT_HEADERS)
+            raise "#{query.inspect} failed to get data from AppDB [HTTP #{response.code}]" unless response.success?
 
-            providers = response.parsed_response['appdb:appdb']['virtualization:provider']
-            providers.delete_if { |prov| prov['provider:endpoint_url'].blank? }
-          end
-
-          def valid_response?(response)
-            response['appdb:appdb'] \
-            && response['appdb:appdb']['virtualization:provider']
+            response.parsed_response
           end
         end
       end

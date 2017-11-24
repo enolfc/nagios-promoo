@@ -28,26 +28,17 @@ module Nagios
           end
 
           def run(_args = [])
-            @_count = 0
-
-            Timeout.timeout(options[:timeout]) { check_sizes }
-
-            if @_count < 1
+            count = Timeout.timeout(options[:timeout]) { sizes_by_endpoint.count }
+            if count < 1
               puts 'SIZES CRITICAL - No size/flavor/resource templates found in AppDB'
               exit 2
             end
 
-            puts "SIZES OK - Found #{@_count} size/flavor/resource templates in AppDB"
+            puts "SIZES OK - Found #{count} size/flavor/resource templates in AppDB"
           rescue => ex
             puts "SIZES UNKNOWN - #{ex.message}"
             puts ex.backtrace if options[:debug]
             exit 3
-          end
-
-          private
-
-          def check_sizes
-            @_count = [appdb_provider['provider:template']].flatten.compact.count
           end
         end
       end

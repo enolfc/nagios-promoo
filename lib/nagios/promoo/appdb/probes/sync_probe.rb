@@ -104,42 +104,34 @@ module Nagios
               mpuri_versionless = versionless_mpuri(hv_image['ad:mpuri'])
               @_results[:expected] << mpuri_versionless
 
-              matching = provider_appliances.detect { |appl| appl['mp_uri'] == mpuri_versionless }
+              matching = appliances_by_endpoint(options[:vo]).detect do |appl|
+                versionless_mpuri(appl['applicationEnvironmentRepository']) == mpuri_versionless
+              end
+
               unless matching
                 @_results[:missing] << mpuri_versionless
                 next
               end
 
-              @_results[:outdated] << mpuri_versionless if hv_image['hv:version'] != matching['vmiversion']
+              unless hv_image['hv:version'] == matching['applicationEnvironmentAppVersion']
+                @_results[:outdated] << mpuri_versionless
+              end
+
               @_results[:found] << mpuri_versionless
             end
-          end
-
-          def provider_appliances
-            return @_appliances if @_appliances
-
-            @_appliances = [appdb_provider['provider:image']].flatten.compact
-            @_appliances.keep_if { |appliance| appliance['voname'] == options[:vo] }
-            @_appliances.reject { |appliance| appliance['mp_uri'].blank? }
-
-            @_appliances.each do |appliance|
-              appliance['mp_uri'] = versionless_mpuri(appliance['mp_uri'])
-            end
-
-            @_appliances
           end
 
           def vo_list
             return @_hv_images if @_hv_images
 
-            list = JSON.parse pkcs7_data
-            raise "AppDB image list #{list_url.inspect} is empty or malformed" unless list && list['hv:imagelist']
+            list = JSON.parse(pkcs7_data)
+            raise 'AppDB image list is empty or malformed' unless list && list['hv:imagelist']
 
             list = list['hv:imagelist']
             unless Time.parse(list['dc:date:expires']) > Time.now
-              raise "AppDB image list #{list_url.inspect} has expired"
+              raise 'AppDB image list has expired'
             end
-            raise "AppDB image list #{list_url.inspect} doesn't contain images" unless list['hv:images']
+            raise "AppDB image list doesn't contain images" unless list['hv:images']
             @_last_update = Time.parse(list['dc:date:created'])
 
             @_hv_images = list['hv:images'].collect { |im| im['hv:image'] }
@@ -153,11 +145,9 @@ module Nagios
           end
 
           def retrieve_list
-            response = HTTParty.get list_url
-            unless response.success?
-              raise 'Could not get a VO-wide image list' \
-                   "from #{list_url.inspect} [#{response.code}]"
-            end
+            response = HTTParty.get(list_url)
+            raise "Could not get an image list from AppDB [HTTP #{response.code}]" unless response.success?
+
             response.parsed_response
           end
 
